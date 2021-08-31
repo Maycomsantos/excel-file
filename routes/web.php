@@ -19,4 +19,16 @@ Route::get('/', function () {
 
 Auth::routes(['register' => false]);
 
+Route::group(['middleware' => 'auth'], function () {
+
+
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+
+Route::post('/finances/import', [App\Http\Controllers\FinanceController::class, 'store']);
+
+Route::resources([
+    'finances' => App\Http\Controllers\FinanceController::class,
+]);
+
+});

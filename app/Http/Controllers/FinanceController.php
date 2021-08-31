@@ -3,6 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Http\Requests\FinanceRequest;
+use App\Models\Finance;
+use App\Imports\FinanceImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class FinanceController extends Controller
 {
@@ -13,7 +17,10 @@ class FinanceController extends Controller
      */
     public function index()
     {
-        //
+        $finances = Finance::latest()->paginate(100);
+
+        return view('finances.index',compact('finances'))
+        ->with('i', (request()->input('page', 1) - 1) * 5);
     }
 
     /**
@@ -23,7 +30,7 @@ class FinanceController extends Controller
      */
     public function create()
     {
-        //
+        return view('finances.form');
     }
 
     /**
@@ -32,12 +39,10 @@ class FinanceController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(FinanceRequest $request)
     {
-        $file = $request->file('file');
-
-        Excel::import(new FinanceImport, $file);
-
+        Excel::import(new FinanceImport, request()->file('file'));
+        
         return back()->withStatus('Planilha enviada com sucesso');
     }
 
@@ -47,9 +52,9 @@ class FinanceController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Finance $finance)
     {
-        //
+        return view('finances.show',compact('finance')); 
     }
 
     /**
@@ -58,9 +63,9 @@ class FinanceController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(Finance $finance)
     {
-        //
+        return view('finances.form',compact('finance'));
     }
 
     /**
@@ -70,9 +75,12 @@ class FinanceController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(FinanceRequest $request, Finance $finance)
     {
-        //
+        $finance->update($request->all());
+    
+        return redirect()->route('finances.index')
+                        ->with('success','Finanças atualizada com sucesso!');
     }
 
     /**
@@ -81,8 +89,11 @@ class FinanceController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Finance $finance)
     {
-        //
+        $finance->delete();
+    
+        return redirect()->route('finances.index')
+                        ->with('success','Finança destruida com sucesso');
     }
 }
